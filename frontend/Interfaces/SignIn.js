@@ -21,22 +21,29 @@ const SignIn = ({ navigation }) => {
         }
 
         try {
-            const response = await axios.post('http://192.168.0.106:5000/users/signin', {
-                email: email,
-                password: password,
-            });
+            const response = await axios.post(
+                'http://192.168.0.102:8080/api/auth/login',
+                JSON.stringify({
+                    correo: email.trim(), // <-- CAMPO CORRECTO
+                    password: password.trim(),
+                }),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            console.log(response);
 
             if (response.status === 200) {
                 const { localId, isFirstTime } = response.data;
 
-                // Save the UID in AsyncStorage
                 await AsyncStorage.setItem('userUID', localId);
 
                 Alert.alert('¡Bienvenido!', 'Inicio de sesión exitoso');
 
-                // Navigate based on isFirstTime
                 if (isFirstTime) {
-                    navigation.navigate('Formulario'); // Replace with your form screen name
+                    navigation.navigate('Formulario');
                 } else {
                     navigation.dispatch(
                         CommonActions.reset({

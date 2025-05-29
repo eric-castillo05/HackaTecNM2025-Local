@@ -188,6 +188,7 @@ const LandingScreen = ({ navigation }) => {
                     onScrollEndDrag={handleScrollEndDrag}
                     scrollEventThrottle={16}
                     style={styles.carousel}
+                    contentContainerStyle={styles.carouselContent}
                 >
                     {slides.map((slide, index) => (
                         <Animated.View
@@ -394,15 +395,20 @@ const styles = StyleSheet.create({
     carousel: {
         flex: 1,
     },
+    carouselContent: {
+        flexDirection: 'row',
+    },
     slide: {
         width: width,
-        height: '100%',
+        height: height * 0.45,
         position: 'relative',
     },
     headerImage: {
-        width: '100%',
-        height: '100%',
+        width: width,
+        height: height * 0.45,
         position: 'absolute',
+        top: 0,
+        left: 0,
     },
     overlay: {
         position: 'absolute',
