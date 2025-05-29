@@ -15,7 +15,7 @@ public class EvaluacionCandidatoService {
 
     private final EvaluacionCandidatoRepository repository;
 
-    public EvaluacionCandidatoService(EvaluacionCandidatoRepository repository, View error) {
+    public EvaluacionCandidatoService(EvaluacionCandidatoRepository repository) {
         this.repository = repository;
     }
 
@@ -31,7 +31,10 @@ public class EvaluacionCandidatoService {
     }
 
     public Optional<EvaluacionCandidato> obtenerPorId(Long id) {
-        return repository.findById(id);
+        if(repository.findById(id).isPresent()){
+            return repository.findById(id);
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     public Optional<EvaluacionCandidato> actualizar(Long id, EvaluacionCandidato nuevo) {
@@ -64,6 +67,9 @@ public class EvaluacionCandidatoService {
     }
 
     public void eliminar(Long id) {
-        repository.deleteById(id);
+        if(repository.findById(id).isPresent()){
+            repository.deleteById(id);
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 }
