@@ -7,6 +7,9 @@ import LandingScreen from "./Interfaces/LandingScreen";
 import FormularioAdopScreen from "./Interfaces/FormularioAdopScreen";
 import SignUp from "./Interfaces/SignUp";
 import SignIn from "./Interfaces/SignIn";
+import PostulanteScreen from "./Interfaces/PostulanteScreen";
+import CitasEntrevistasScreen from "./Interfaces/CitasEntrevistasScreen";
+import SeguimientoScreen from "./Interfaces/SeguimientoScreen";
 
 const Stack = createStackNavigator();
 
@@ -23,6 +26,10 @@ export default function App() {
             <Stack.Screen name="Formulario" component={FormularioAdopScreen} />
             <Stack.Screen name="SignUp" component={SignUp} />
             <Stack.Screen name="SignIn" component={SignIn} />
+            <Stack.Screen name="Postulante" component={PostulanteScreen} />
+            <Stack.Screen name="Citas" component={CitasEntrevistasScreen} />
+            <Stack.Screen name="Seguimiento" component={SeguimientoScreen} />
+
         </Stack.Navigator>
       </NavigationContainer>
   );

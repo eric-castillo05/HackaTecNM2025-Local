@@ -154,7 +154,7 @@ const LandingScreen = ({ navigation }) => {
                 useNativeDriver: true,
             })
         ]).start();
-        navigation.navigate('Empecemos');
+        navigation.navigate('Empecemos'); // Now navigation is defined
     };
 
     const goToSlide = (index) => {

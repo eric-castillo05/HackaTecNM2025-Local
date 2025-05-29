@@ -1,3 +1,4 @@
+// FormularioAdopScreen.js
 import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
@@ -8,21 +9,23 @@ import {
     TouchableOpacity,
     Animated,
     Dimensions,
-    StatusBar,
     Alert,
     KeyboardAvoidingView,
     Platform
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
 const FormularioAdopScreen = ({ navigation }) => {
+    const insets = useSafeAreaInsets();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
         // Paso 1: Información Personal
+        codigo_credencial: '',
         anios_trabajo_actual: '',
         edad: '',
         genero: '',
@@ -53,7 +56,7 @@ const FormularioAdopScreen = ({ navigation }) => {
             subtitle: "Cuéntanos sobre ti",
             icon: "person",
             iconLibrary: "MaterialIcons",
-            fields: ['anios_trabajo_actual', 'edad', 'genero', 'estado_civil']
+            fields: ['codigo_credencial', 'anios_trabajo_actual', 'edad', 'genero', 'estado_civil']
         },
         {
             title: "Información Familiar",
@@ -188,7 +191,7 @@ const FormularioAdopScreen = ({ navigation }) => {
         if (iconLibrary === "MaterialCommunityIcons") {
             return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
         }
-        return <Icon name={iconName} size={size} color={color} />;
+        return <MaterialIcons name={iconName} size={size} color={color} />;
     };
 
     const renderField = (fieldName) => {
@@ -260,6 +263,13 @@ const FormularioAdopScreen = ({ navigation }) => {
 
     const getFieldConfig = (fieldName) => {
         const configs = {
+            codigo_credencial: {
+                label: "Código de identificación de credencial",
+                placeholder: "Ej: ABC123456789",
+                keyboardType: 'default',
+                icon: "badge",
+                iconLibrary: "MaterialIcons"
+            },
             anios_trabajo_actual: {
                 label: "Años en trabajo actual",
                 placeholder: "Ej: 3",
@@ -382,10 +392,13 @@ const FormularioAdopScreen = ({ navigation }) => {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+            <StatusBar style="light" />
+
+            {/* Status Bar Background View */}
+            <View style={[styles.statusBarBackground, { height: insets.top }]} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                 <Animated.View
                     style={[
                         styles.headerContent,
@@ -463,6 +476,7 @@ const FormularioAdopScreen = ({ navigation }) => {
             <Animated.View
                 style={[
                     styles.navigationContainer,
+                    { paddingBottom: Math.max(insets.bottom, 20) + 15 },
                     {
                         opacity: fadeAnim,
                         transform: [{
@@ -481,7 +495,7 @@ const FormularioAdopScreen = ({ navigation }) => {
                         activeOpacity={0.8}
                     >
                         <View style={styles.buttonContent}>
-                            <Icon name="arrow-back" size={20} color="#64748b" />
+                            <MaterialIcons name="arrow-back" size={20} color="#64748b" />
                             <Text style={styles.prevButtonText}>Anterior</Text>
                         </View>
                     </TouchableOpacity>
@@ -502,9 +516,9 @@ const FormularioAdopScreen = ({ navigation }) => {
                             {currentStep === steps.length - 1 ? 'Enviar' : 'Siguiente'}
                         </Text>
                         {currentStep === steps.length - 1 ? (
-                            <Icon name="check" size={20} color="#fff" />
+                            <MaterialIcons name="check" size={20} color="#fff" />
                         ) : (
-                            <Icon name="arrow-forward" size={20} color="#fff" />
+                            <MaterialIcons name="arrow-forward" size={20} color="#fff" />
                         )}
                     </View>
                 </TouchableOpacity>
@@ -518,9 +532,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f8fafc',
     },
+    statusBarBackground: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#3AAFA9',
+        zIndex: 1,
+    },
     header: {
         backgroundColor: '#3AAFA9',
-        paddingTop: StatusBar.currentHeight || 44,
         paddingBottom: 30,
         paddingHorizontal: 20,
         borderBottomLeftRadius: 30,
@@ -663,7 +684,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 20,
         paddingVertical: 20,
-        paddingBottom: 35,
         backgroundColor: '#fff',
         borderTopWidth: 1,
         borderTopColor: '#e2e8f0',
