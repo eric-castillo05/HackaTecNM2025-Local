@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface PadreAdoptivoRepository extends JpaRepository<PadreAdoptivo, Long> {
-    public Optional<PadreAdoptivo> findPadreAdoptivoById(Long id);
+    Optional<PadreAdoptivo> findPadreAdoptivoByIdPadreCandidato(long idPadreCandidato);
     public Optional<PadreAdoptivo> findPadreAdoptivoByCorreo(String correo);
 
 }

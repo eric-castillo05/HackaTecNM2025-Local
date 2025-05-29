@@ -28,7 +28,7 @@ public class PadreAdoptivoService {
 
     public PadreAdoptivo create(PadreAdoptivo padre) {
         if(repository.findPadreAdoptivoByCorreo(padre.getCorreo()).isEmpty()) {
-            repository.save(padre);
+            return repository.save(padre);
         }
         throw new ResponseStatusException(HttpStatus.CONFLICT);
     }
