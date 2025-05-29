@@ -12,7 +12,6 @@ import CitasEntrevistasScreen from "./Interfaces/CitasEntrevistasScreen";
 import SeguimientoScreen from "./Interfaces/SeguimientoScreen";
 import RecursosScreen from "./Interfaces/RecursosScreen";
 import TrabajadorSocialScreen from "./Interfaces/trabajador/TrabajadorSocialScreen";
-
 const Stack = createStackNavigator();
 
 export default function App() {
