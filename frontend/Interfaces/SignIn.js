@@ -48,16 +48,32 @@ const SignIn = ({ navigation }) => {
                 // Por ahora, extraemos el nombre del email como ejemplo
                 const userName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-                Alert.alert('¡Bienvenido!', 'Inicio de sesión exitoso', [
+                // Determinar la pantalla de destino según el tipo de usuario
+                let destinationScreen;
+                let welcomeMessage;
+
+                if (tipoUsuario === 'PADRE') {
+                    destinationScreen = 'Postulante';
+                    welcomeMessage = '¡Bienvenido padre de familia!';
+                } else if (tipoUsuario === 'TRABAJADOR') {
+                    destinationScreen = 'TrabajadorSocial';
+                    welcomeMessage = '¡Bienvenido trabajador social!';
+                } else {
+                    // Tipo de usuario no reconocido, usar pantalla por defecto
+                    destinationScreen = 'Postulante';
+                    welcomeMessage = '¡Bienvenido!';
+                }
+
+                Alert.alert(welcomeMessage, 'Inicio de sesión exitoso', [
                     {
                         text: 'Continuar',
                         onPress: () => {
-                            // Navegar a PostulanteScreen con los datos del usuario
+                            // Navegar a la pantalla correspondiente con los datos del usuario
                             navigation.dispatch(
                                 CommonActions.reset({
                                     index: 0,
                                     routes: [{
-                                        name: 'Postulante',
+                                        name: destinationScreen,
                                         params: {
                                             userName: userName,
                                             userEmail: email.trim(),
