@@ -13,7 +13,8 @@ import {
     KeyboardAvoidingView,
     Platform,
     Modal,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    ActivityIndicator
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -26,6 +27,9 @@ const FormularioAdopScreen = ({ navigation }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [currentField, setCurrentField] = useState('');
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [curpData, setCurpData] = useState(null); // Nuevo estado para almacenar datos del CURP
+    const [showConfirmation, setShowConfirmation] = useState(false); // Estado para mostrar confirmación
     const [formData, setFormData] = useState({
         // Paso 0: Verificación de Credencial
         codigo_credencial: '',
@@ -138,6 +142,123 @@ const FormularioAdopScreen = ({ navigation }) => {
         }));
     };
 
+    // Función para formatear fecha
+    const formatearFecha = (fecha) => {
+        const date = new Date(fecha);
+        const opciones = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+        return date.toLocaleDateString('es-ES', opciones);
+    };
+
+    // Función para calcular edad
+    const calcularEdad = (fechaNacimiento) => {
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNacimiento);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const mes = hoy.getMonth() - nacimiento.getMonth();
+
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+            edad--;
+        }
+
+        return edad;
+    };
+
+    // Función para verificar CURP
+    const verificarCurp = async (curp) => {
+        try {
+            setIsVerifying(true);
+
+            const response = await fetch(`http://192.168.0.102:8080/api/curp/verificar?curp=${curp}`, {
+                method: 'POST',
+                headers: {
+                    'Bearer': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZDllMGRlODU0NjI1NThjMWUzOGFkZjU4ZjZkOTE5MzBhNWU5MmZiZGNmMGYxODUzY2NhN2U5N2RjOGMwNzQxNmFiNzM2NmQ1MmJkNjIyZWYiLCJpYXQiOjE3NDg0OTk0NTQuNzQ1NjAzLCJuYmYiOjE3NDg0OTk0NTQuNzQ1NjIyLCJleHAiOjE3ODAwMzU0NTQuNzI2OCwic3ViIjoiNjE1MiIsInNjb3BlcyI6W119.blZydhhwzIR1651zOw92JQ9CO97IdsX8w_IDdb5dC5ylgNVmtUpxc8qtZjvbbPsODmZaEWnW-9c20ykf8Enpecn8RvkYD8AX4oVDk5cgtOKlzcclkiVavsmCb-niJQlMDIkl89EfDdSzj7FYcy5OejOfaBOeyd0jJ6cnoIhYyx81hZoW_i9KM1iT8MV_ohsim8UpqOBXumpbhOod5Uv0-iKD39KAzsEqMN14TJA9hjVscvcQFJTx2ycCOFrrdK6oCYJypt5Hj6CGMx88NZOsz6MwRUwtqDWjQe1To5XHepq85fOz4rPVrKDD6I2n-EJIt_cmz9AKn7E1GzaqxHahVX1yVKoCOrvteG8ycL5ACmHcva_BHwRMhuJFIoSe2KQmU3uuIabEB5NoC4g6JmJxqVGuaLvaDxFSlDoDwyR-UoV7GCAUaskPeYzy5uc0Ab3GefeU9bYdxpAke50dZt8SW9khIjaEWj67cEW_w312tdRNfoxBHrrmwB-wGfkIvHCd6tmGDR8uoB8YTnj6o0AqIih4uNswfbWmIZtT1sR0stYCbEuSswtiirAOYszQTwIKMMs_0tbIsTF0EEHv1WDIC_jRsEg6ys7OkY6G2ZrL_TVHrfXaiLMHuo-BkhuH01WqXGXWCZWQ3qJwTGsBZVpk3rB5Oz0xPINMpvs4Zth6N6Q',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.data?.citizen?.registros?.length > 0) {
+                const registro = data.data.citizen.registros[0];
+                setCurpData(registro);
+                setShowConfirmation(true);
+                return { success: true, data: registro };
+            } else {
+                return {
+                    success: false,
+                    message: data.message || 'CURP no válido o no encontrado'
+                };
+            }
+        } catch (error) {
+            console.error('Error al verificar CURP:', error);
+            return {
+                success: false,
+                message: 'Error de conexión. Verifica tu conexión a internet.'
+            };
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
+    // Función para mostrar la confirmación de datos
+    const mostrarConfirmacionDatos = (datos) => {
+        const nombreCompleto = `${datos.nombres} ${datos.primerApellido} ${datos.segundoApellido}`.trim();
+        const fechaFormateada = formatearFecha(datos.fechaNacimiento);
+        const edad = calcularEdad(datos.fechaNacimiento);
+
+        Alert.alert(
+            "🔍 Verificar Datos del CURP",
+            `Por favor confirma que los siguientes datos son correctos:\n\n` +
+            `👤 Nombre: ${nombreCompleto}\n` +
+            `🎂 Fecha de nacimiento: ${fechaFormateada}\n` +
+            `📅 Edad: ${edad} años\n` +
+            `⚧ Sexo: ${datos.sexo}\n` +
+            `🌎 Nacionalidad: ${datos.nacionalidad}\n` +
+            `📍 Entidad: ${datos.entidad}\n\n` +
+            `¿Estos datos son correctos?`,
+            [
+                {
+                    text: "❌ No, revisar CURP",
+                    style: "cancel",
+                    onPress: () => {
+                        setShowConfirmation(false);
+                        setCurpData(null);
+                        // Limpiar el campo CURP para que el usuario pueda corregirlo
+                        updateFormData('codigo_credencial', '');
+                    }
+                },
+                {
+                    text: "✅ Sí, continuar",
+                    style: "default",
+                    onPress: () => {
+                        setShowConfirmation(false);
+                        // Auto-llenar algunos campos del formulario con los datos del CURP
+                        const edad = calcularEdad(datos.fechaNacimiento);
+                        updateFormData('edad', edad.toString());
+
+                        // Mapear sexo del CURP al género del formulario
+                        const generoMapeado = datos.sexo.toLowerCase() === 'hombre' ? 'masculino' : 'femenino';
+                        updateFormData('genero', generoMapeado);
+
+                        // Continuar al siguiente paso
+                        setCurrentStep(currentStep + 1);
+
+                        Alert.alert(
+                            "✅ CURP Verificado",
+                            "Datos confirmados correctamente. Algunos campos han sido llenados automáticamente con la información de tu CURP.",
+                            [{ text: "Continuar", style: "default" }]
+                        );
+                    }
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
     const validateCurrentStep = () => {
         const currentFields = steps[currentStep].fields;
         const emptyFields = currentFields.filter(field => {
@@ -159,15 +280,47 @@ const FormularioAdopScreen = ({ navigation }) => {
         return true;
     };
 
-    const nextStep = () => {
-        if (validateCurrentStep()) {
-            if (currentStep === 0) {
-                setCurrentStep(currentStep + 1);
-            } else if (currentStep < steps.length - 1) {
-                setCurrentStep(currentStep + 1);
-            } else {
-                handleSubmit();
+    const nextStep = async () => {
+        if (!validateCurrentStep()) {
+            return;
+        }
+
+        // Si estamos en el paso 0 (verificación de CURP)
+        if (currentStep === 0) {
+            const curp = formData.codigo_credencial.trim().toUpperCase();
+
+            // Validación básica del formato CURP (18 caracteres alfanuméricos)
+            if (curp.length !== 18) {
+                Alert.alert(
+                    "CURP Inválido",
+                    "El CURP debe tener exactamente 18 caracteres.",
+                    [{ text: "Entendido", style: "default" }]
+                );
+                return;
             }
+
+            // Verificar CURP con la API
+            const resultado = await verificarCurp(curp);
+
+            if (resultado.success) {
+                // Mostrar confirmación de datos
+                mostrarConfirmacionDatos(resultado.data);
+            } else {
+                Alert.alert(
+                    "❌ Error de Verificación",
+                    resultado.message,
+                    [
+                        {
+                            text: "Reintentar",
+                            style: "default"
+                        }
+                    ]
+                );
+            }
+        } else if (currentStep < steps.length - 1) {
+            setCurrentStep(currentStep + 1);
+        } else {
+            handleSubmit();
         }
     };
 
@@ -183,7 +336,16 @@ const FormularioAdopScreen = ({ navigation }) => {
             hijos_biologicos: parseInt(formData.hijos_biologicos) || 0,
             edad: parseInt(formData.edad) || 0,
             anios_trabajo_actual: parseInt(formData.anios_trabajo_actual) || 0,
-            ingreso_mensual: parseFloat(formData.ingreso_mensual) || 0
+            ingreso_mensual: parseFloat(formData.ingreso_mensual) || 0,
+            // Incluir datos del CURP verificado
+            curp_verificado: curpData ? {
+                curp: curpData.curp,
+                nombre_completo: `${curpData.nombres} ${curpData.primerApellido} ${curpData.segundoApellido}`.trim(),
+                fecha_nacimiento: curpData.fechaNacimiento,
+                sexo: curpData.sexo,
+                nacionalidad: curpData.nacionalidad,
+                entidad: curpData.entidad
+            } : null
         };
 
         console.log('Datos a enviar:', processedData);
@@ -240,10 +402,17 @@ const FormularioAdopScreen = ({ navigation }) => {
                     ]}
                 >
                     <Text style={styles.inputLabel}>{fieldConfig.label}</Text>
+                    {(fieldName === 'edad' || fieldName === 'genero') && curpData && (
+                        <View style={styles.autoFilledIndicator}>
+                            <MaterialIcons name="auto-awesome" size={16} color="#10b981" />
+                            <Text style={styles.autoFilledText}>Auto-llenado</Text>
+                        </View>
+                    )}
                     <TouchableOpacity
                         style={styles.inputContainer}
                         onPress={() => openModal(fieldName)}
                         activeOpacity={0.7}
+                        disabled={(fieldName === 'edad' && curpData)}
                     >
                         <Ionicons
                             name={fieldConfig.ionIcon}
@@ -275,6 +444,12 @@ const FormularioAdopScreen = ({ navigation }) => {
                 ]}
             >
                 <Text style={styles.inputLabel}>{fieldConfig.label}</Text>
+                {fieldName === 'edad' && curpData && (
+                    <View style={styles.autoFilledIndicator}>
+                        <MaterialIcons name="auto-awesome" size={16} color="#10b981" />
+                        <Text style={styles.autoFilledText}>Auto-llenado</Text>
+                    </View>
+                )}
                 <View style={styles.inputContainer}>
                     <Ionicons
                         name={fieldConfig.ionIcon}
@@ -283,13 +458,21 @@ const FormularioAdopScreen = ({ navigation }) => {
                         style={styles.inputIcon}
                     />
                     <TextInput
-                        style={styles.input}
+                        style={[
+                            styles.input,
+                            formData[fieldName] && styles.inputFilled,
+                            (fieldName === 'edad' && curpData) && styles.inputAutoFilled
+                        ]}
                         placeholder={fieldConfig.placeholder}
                         placeholderTextColor="#A0A0A0"
                         value={formData[fieldName]}
                         onChangeText={(value) => updateFormData(fieldName, value)}
                         keyboardType={fieldConfig.keyboardType || 'default'}
-                        autoCapitalize={fieldConfig.autoCapitalize || 'sentences'}
+                        multiline={fieldConfig.multiline || false}
+                        numberOfLines={fieldConfig.numberOfLines || 1}
+                        autoCapitalize={fieldName === 'codigo_credencial' ? 'characters' : 'sentences'}
+                        maxLength={fieldName === 'codigo_credencial' ? 18 : undefined}
+                        editable={!(fieldName === 'edad' && curpData)} // Deshabilitar edición de edad si viene del CURP
                     />
                 </View>
             </Animated.View>
@@ -567,6 +750,7 @@ const FormularioAdopScreen = ({ navigation }) => {
                         style={[styles.navButton, styles.prevButton]}
                         onPress={prevStep}
                         activeOpacity={0.8}
+                        disabled={isVerifying}
                     >
                         <View style={styles.buttonContent}>
                             <Ionicons name="arrow-back" size={20} color="#64748b" />
@@ -580,21 +764,32 @@ const FormularioAdopScreen = ({ navigation }) => {
                         styles.navButton,
                         styles.nextButton,
                         currentStep === 0 && styles.fullWidthButton,
-                        currentStep === steps.length - 1 && styles.submitButton
+                        currentStep === steps.length - 1 && styles.submitButton,
+                        isVerifying && styles.disabledButton
                     ]}
                     onPress={nextStep}
                     activeOpacity={0.8}
+                    disabled={isVerifying}
                 >
                     <View style={styles.buttonContent}>
-                        <Text style={styles.nextButtonText}>
-                            {currentStep === 0 ? 'Verificar' : currentStep === steps.length - 1 ? 'Enviar' : 'Siguiente'}
-                        </Text>
-                        {currentStep === 0 ? (
-                            <Ionicons name="shield-checkmark" size={20} color="#fff" />
-                        ) : currentStep === steps.length - 1 ? (
-                            <Ionicons name="checkmark" size={20} color="#fff" />
+                        {isVerifying ? (
+                            <>
+                                <ActivityIndicator size="small" color="#fff" />
+                                <Text style={styles.nextButtonText}>Verificando...</Text>
+                            </>
                         ) : (
-                            <Ionicons name="arrow-forward" size={20} color="#fff" />
+                            <>
+                                <Text style={styles.nextButtonText}>
+                                    {currentStep === 0 ? 'Verificar' : currentStep === steps.length - 1 ? 'Enviar' : 'Siguiente'}
+                                </Text>
+                                {currentStep === 0 ? (
+                                    <Ionicons name="shield-checkmark" size={20} color="#fff" />
+                                ) : currentStep === steps.length - 1 ? (
+                                    <Ionicons name="checkmark" size={20} color="#fff" />
+                                ) : (
+                                    <Ionicons name="arrow-forward" size={20} color="#fff" />
+                                )}
+                            </>
                         )}
                     </View>
                 </TouchableOpacity>
@@ -737,10 +932,28 @@ const styles = StyleSheet.create({
         color: '#2C3E50',
         paddingVertical: 0,
     },
+    inputFilled: {
+        color: '#2C3E50',
+    },
+    inputAutoFilled: {
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderColor: '#10b981',
+    },
     selectorText: {
         flex: 1,
         fontSize: 16,
         paddingVertical: 2,
+    },
+    autoFilledIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    autoFilledText: {
+        color: '#10b981',
+        fontSize: 12,
+        fontWeight: '600',
+        marginLeft: 4,
     },
     navigationContainer: {
         position: 'absolute',
@@ -788,6 +1001,10 @@ const styles = StyleSheet.create({
     },
     fullWidthButton: {
         marginLeft: 0,
+    },
+    disabledButton: {
+        backgroundColor: '#94a3b8',
+        opacity: 0.7,
     },
     buttonContent: {
         flexDirection: 'row',
