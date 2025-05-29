@@ -25,7 +25,7 @@ public class AuthService {
 
         if (padre != null) {
             if (padre.getPassword().equals(request.getPassword())) {
-                return new LoginResponse(padre.getIdPadreCandidato(), "PADRE", "/padre/dashboard");
+                return new LoginResponse(padre.getIdPadreCandidato(), "PADRE");
             } else {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
             }

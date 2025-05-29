@@ -7,5 +7,4 @@ import lombok.Data;
 public class LoginResponse {
     private Long id;
     private String tipoUsuario; // PADRE o TRABAJADOR
-    private String redirectUrl;
 }
