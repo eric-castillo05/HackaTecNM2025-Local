@@ -27,19 +27,24 @@ const SignIn = ({ navigation }) => {
             });
 
             if (response.status === 200) {
-                const { localId } = response.data;
+                const { localId, isFirstTime } = response.data;
 
-                // Guarda el UID en AsyncStorage
+                // Save the UID in AsyncStorage
                 await AsyncStorage.setItem('userUID', localId);
+
                 Alert.alert('¡Bienvenido!', 'Inicio de sesión exitoso');
 
-                // Navega al Main y resetea el historial
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: 'Main' }],
-                    })
-                );
+                // Navigate based on isFirstTime
+                if (isFirstTime) {
+                    navigation.navigate('Formulario'); // Replace with your form screen name
+                } else {
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'Main' }],
+                        })
+                    );
+                }
             } else {
                 Alert.alert('Error de autenticación', 'No se pudo iniciar sesión. Intenta de nuevo.');
             }
