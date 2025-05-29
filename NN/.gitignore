@@ -8,3 +8,5 @@ neural_network_model.keras
 preprocessor.pkl
 label_encoder.joblib
 preprocessor.joblib
+flaskr/utils/__pycache__
+flaskr/routes/__pycache__
