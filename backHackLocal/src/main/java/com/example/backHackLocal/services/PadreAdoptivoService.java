@@ -2,7 +2,9 @@ package com.example.backHackLocal.services;
 
 import com.example.backHackLocal.model.PadreAdoptivo;
 import com.example.backHackLocal.repository.PadreAdoptivoRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +27,10 @@ public class PadreAdoptivoService {
     }
 
     public PadreAdoptivo create(PadreAdoptivo padre) {
-        return repository.save(padre);
+        if(repository.findPadreAdoptivoByCorreo(padre.getCorreo()).isEmpty()) {
+            repository.save(padre);
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT);
     }
 
     public PadreAdoptivo update(Long id, PadreAdoptivo padreNuevo) {
