@@ -1,3 +1,5 @@
 .env
 .venv
 .idea
+__pychache__
+flaskr/__pycache__
