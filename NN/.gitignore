@@ -3,3 +3,8 @@
 .idea
 __pychache__
 flaskr/__pycache__
+label_encoder.pkl
+neural_network_model.keras
+preprocessor.pkl
+label_encoder.joblib
+preprocessor.joblib
