@@ -7,14 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/verificacion-ine")
-public class VerificacionIneController {
+@RequestMapping("/api/curp")
+public class VerificacionCURPController {
 
     @Autowired
-    private VerificacionIneService verificacionIneService;
+    private VerificacionCURPService verificacionCURPService;
 
-    @PostMapping
-    public ResponseEntity<?> verificar(@RequestBody VerificacionIneRequest request) {
-        return verificacionIneService.verificarINE(request);
+    @PostMapping("/verificar")
+    public ResponseEntity<?> verificar(@RequestParam String curp) {
+        return verificacionCURPService.verificarCURP(curp);
     }
 }
