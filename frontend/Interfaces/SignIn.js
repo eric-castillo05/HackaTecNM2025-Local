@@ -24,7 +24,7 @@ const SignIn = ({ navigation }) => {
             const response = await axios.post(
                 'http://192.168.0.102:8080/api/auth/login',
                 JSON.stringify({
-                    correo: email.trim(), // <-- CAMPO CORRECTO
+                    correo: email.trim(),
                     password: password.trim(),
                 }),
                 {
@@ -33,25 +33,44 @@ const SignIn = ({ navigation }) => {
                     },
                 }
             );
-            console.log(response);
+
+            console.log('Login response:', response.data);
 
             if (response.status === 200) {
-                const { localId, isFirstTime } = response.data;
+                const { id, tipoUsuario, redirectUrl } = response.data;
 
-                await AsyncStorage.setItem('userUID', localId);
+                // Guardar datos del usuario en AsyncStorage
+                await AsyncStorage.setItem('userUID', id.toString());
+                await AsyncStorage.setItem('tipoUsuario', tipoUsuario);
+                await AsyncStorage.setItem('userEmail', email.trim());
 
-                Alert.alert('¡Bienvenido!', 'Inicio de sesión exitoso');
+                // Obtener el nombre del usuario (puedes obtenerlo del backend o extraerlo del email)
+                // Por ahora, extraemos el nombre del email como ejemplo
+                const userName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-                if (isFirstTime) {
-                    navigation.navigate('Formulario');
-                } else {
-                    navigation.dispatch(
-                        CommonActions.reset({
-                            index: 0,
-                            routes: [{ name: 'Main' }],
-                        })
-                    );
-                }
+                Alert.alert('¡Bienvenido!', 'Inicio de sesión exitoso', [
+                    {
+                        text: 'Continuar',
+                        onPress: () => {
+                            // Navegar a PostulanteScreen con los datos del usuario
+                            navigation.dispatch(
+                                CommonActions.reset({
+                                    index: 0,
+                                    routes: [{
+                                        name: 'Postulante',
+                                        params: {
+                                            userName: userName,
+                                            userEmail: email.trim(),
+                                            userId: id,
+                                            tipoUsuario: tipoUsuario
+                                        }
+                                    }],
+                                })
+                            );
+                        }
+                    }
+                ]);
+
             } else {
                 Alert.alert('Error de autenticación', 'No se pudo iniciar sesión. Intenta de nuevo.');
             }
@@ -59,12 +78,13 @@ const SignIn = ({ navigation }) => {
             console.error('Error en el inicio de sesión:', error);
             if (error.response && error.response.status === 401) {
                 Alert.alert('Error', 'Email o contraseña incorrectos');
+            } else if (error.response && error.response.status === 404) {
+                Alert.alert('Error', 'Usuario no encontrado');
             } else {
                 Alert.alert('Error', 'Ocurrió un error en el servidor');
             }
         }
     };
-
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.mainContainer}>

@@ -1,4 +1,3 @@
-// DashboardAdopcionScreen.js
 import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
@@ -15,6 +14,8 @@ import {
 import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CommonActions } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -65,7 +66,42 @@ const PostulanteScreen = ({ navigation, route }) => {
                 {
                     text: "Cerrar Sesión",
                     style: "destructive",
-                    onPress: () => navigation.navigate('Login')
+                    onPress: async () => {
+                        try {
+                            // Mostrar indicador de carga (opcional)
+                            // setIsLoading(true);
+
+                            // Limpiar todos los datos de sesión
+                            await AsyncStorage.multiRemove([
+                                'userToken',
+                                'userData',
+                                'userEmail',
+                                'userName',
+                                'isLoggedIn',
+                                'refreshToken' // si usas refresh tokens
+                            ]);
+
+                            // Alternativa: limpiar todo el storage
+                            // await AsyncStorage.clear();
+
+                            // Resetear el stack de navegación para evitar volver atrás
+                            navigation.dispatch(
+                                CommonActions.reset({
+                                    index: 0,
+                                    routes: [{ name: 'Landing' }],
+                                })
+                            );
+
+                            console.log('Sesión cerrada exitosamente');
+
+                        } catch (error) {
+                            console.error('Error al cerrar sesión:', error);
+                            Alert.alert(
+                                "Error",
+                                "Hubo un problema al cerrar sesión. Inténtalo de nuevo."
+                            );
+                        }
+                    }
                 }
             ]
         );
