@@ -92,7 +92,7 @@ const SignUp = ({ navigation }) => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Nombre completo</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="person-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="person-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Ingresa tu nombre"
@@ -107,7 +107,7 @@ const SignUp = ({ navigation }) => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Correo electrónico</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="mail-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="mail-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="ejemplo@correo.com"
@@ -128,7 +128,7 @@ const SignUp = ({ navigation }) => {
                                 onPress={() => setShowSexoModal(true)}
                                 activeOpacity={0.7}
                             >
-                                <Ionicons name="transgender-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="transgender-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <Text style={[styles.selectorText, { color: sexo ? '#2C3E50' : '#A0A0A0' }]}>
                                     {getSexoLabel()}
                                 </Text>
@@ -140,7 +140,7 @@ const SignUp = ({ navigation }) => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Contraseña</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="lock-closed-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Mínimo 6 caracteres"
@@ -153,7 +153,7 @@ const SignUp = ({ navigation }) => {
                                     <Ionicons
                                         name={showPassword ? "eye-off-outline" : "eye-outline"}
                                         size={20}
-                                        color="#7C7C7C"
+                                        color="#3AAFA9"
                                     />
                                 </TouchableOpacity>
                             </View>
@@ -163,7 +163,7 @@ const SignUp = ({ navigation }) => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Confirmar contraseña</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="lock-closed-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Confirma tu contraseña"
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
         borderWidth: 1,
-        borderColor: '#E8ECEF',
+        borderColor: '#3AAFA9',
         minHeight: 48,
     },
     inputIcon: {

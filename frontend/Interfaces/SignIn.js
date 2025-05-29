@@ -81,14 +81,14 @@ const SignIn = ({ navigation }) => {
                     <View style={styles.formContainer}>
                         {/* Icon */}
                         <View style={styles.iconContainer}>
-                            <Ionicons name="person-circle-outline" size={80} color="#4A90E2" />
+                            <Ionicons name="person-circle-outline" size={80} color="#3AAFA9" />
                         </View>
 
                         {/* Email Field */}
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Email</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="mail-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="mail-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Ej: example@gmail.com"
@@ -104,7 +104,7 @@ const SignIn = ({ navigation }) => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Contraseña</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#7C7C7C" style={styles.inputIcon} />
+                                <Ionicons name="lock-closed-outline" size={20} color="#3AAFA9" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Ingresa tu contraseña"
@@ -117,7 +117,7 @@ const SignIn = ({ navigation }) => {
                                     <Ionicons
                                         name={showPassword ? "eye-off-outline" : "eye-outline"}
                                         size={20}
-                                        color="#7C7C7C"
+                                        color="#3AAFA9"
                                     />
                                 </TouchableOpacity>
                             </View>
@@ -142,7 +142,7 @@ const SignIn = ({ navigation }) => {
                         {/* Sign Up Link */}
                         <View style={styles.signUpContainer}>
                             <Text style={styles.signUpText}>¿No tienes una cuenta? </Text>
-                            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Postulante')}>
                                 <Text style={styles.signUpLink}>Crear Cuenta</Text>
                             </TouchableOpacity>
                         </View>

@@ -70,7 +70,7 @@ const LandingScreen = ({ navigation }) => { // Add navigation as a prop
                 useNativeDriver: true,
             })
         ]).start();
-        navigation.navigate('Formulario'); // Now navigation is defined
+        navigation.navigate('Empecemos'); // Now navigation is defined
     };
 
     const nextSlide = () => {
