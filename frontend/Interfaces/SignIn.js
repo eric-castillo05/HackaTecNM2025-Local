@@ -21,25 +21,37 @@ const SignIn = ({ navigation }) => {
         }
 
         try {
-            const response = await axios.post('http://192.168.0.106:5000/users/signin', {
-                email: email,
-                password: password,
-            });
+            const response = await axios.post(
+                'http://192.168.0.102:8080/api/auth/login',
+                JSON.stringify({
+                    correo: email.trim(), // <-- CAMPO CORRECTO
+                    password: password.trim(),
+                }),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            console.log(response);
 
             if (response.status === 200) {
-                const { localId } = response.data;
+                const { localId, isFirstTime } = response.data;
 
-                // Guarda el UID en AsyncStorage
                 await AsyncStorage.setItem('userUID', localId);
+
                 Alert.alert('¡Bienvenido!', 'Inicio de sesión exitoso');
 
-                // Navega al Main y resetea el historial
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: 'Main' }],
-                    })
-                );
+                if (isFirstTime) {
+                    navigation.navigate('Formulario');
+                } else {
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'Main' }],
+                        })
+                    );
+                }
             } else {
                 Alert.alert('Error de autenticación', 'No se pudo iniciar sesión. Intenta de nuevo.');
             }

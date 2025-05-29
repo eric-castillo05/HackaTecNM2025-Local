@@ -13,11 +13,14 @@ import {
 
 const { width, height } = Dimensions.get('window');
 
-const LandingScreen = ({ navigation }) => { // Add navigation as a prop
+const LandingScreen = ({ navigation }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
     const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+    const autoplayInterval = useRef(null);
+    const scrollViewRef = useRef(null);
+    const slideOpacity = useRef(new Animated.Value(1)).current;
 
     const slides = [
         {
@@ -42,7 +45,77 @@ const LandingScreen = ({ navigation }) => { // Add navigation as a prop
         }
     ];
 
+    // Función para animar el cambio de slide
+    const animateSlideChange = (newIndex) => {
+        Animated.sequence([
+            Animated.timing(slideOpacity, {
+                toValue: 0.3,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideOpacity, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            })
+        ]).start();
+        setCurrentSlide(newIndex);
+    };
+
+    // Función para avanzar al siguiente slide (con loop)
+    const nextSlideAuto = () => {
+        const nextIndex = currentSlide === slides.length - 1 ? 0 : currentSlide + 1;
+
+        // Scroll automático
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({
+                x: nextIndex * width,
+                animated: true
+            });
+        }
+
+        animateSlideChange(nextIndex);
+    };
+
+    // Iniciar autoplay
+    const startAutoplay = () => {
+        if (autoplayInterval.current) {
+            clearInterval(autoplayInterval.current);
+        }
+        autoplayInterval.current = setInterval(nextSlideAuto, 4000); // Cambia cada 4 segundos
+    };
+
+    // Detener autoplay
+    const stopAutoplay = () => {
+        if (autoplayInterval.current) {
+            clearInterval(autoplayInterval.current);
+            autoplayInterval.current = null;
+        }
+    };
+
+    // Manejar el scroll manual
+    const handleScroll = (event) => {
+        const scrollPosition = event.nativeEvent.contentOffset.x;
+        const slideIndex = Math.round(scrollPosition / width);
+
+        if (slideIndex !== currentSlide && slideIndex >= 0 && slideIndex < slides.length) {
+            animateSlideChange(slideIndex);
+        }
+    };
+
+    // Manejar cuando el usuario comienza a hacer scroll
+    const handleScrollBeginDrag = () => {
+        stopAutoplay();
+    };
+
+    // Manejar cuando el usuario termina de hacer scroll
+    const handleScrollEndDrag = () => {
+        // Reiniciar autoplay después de 5 segundos de inactividad
+        setTimeout(startAutoplay, 5000);
+    };
+
     useEffect(() => {
+        // Animaciones iniciales
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -55,6 +128,17 @@ const LandingScreen = ({ navigation }) => { // Add navigation as a prop
                 useNativeDriver: true,
             })
         ]).start();
+
+        // Iniciar autoplay después de las animaciones iniciales
+        const timer = setTimeout(() => {
+            startAutoplay();
+        }, 1500);
+
+        // Cleanup
+        return () => {
+            clearTimeout(timer);
+            stopAutoplay();
+        };
     }, []);
 
     const handleButtonPress = () => {
@@ -73,81 +157,111 @@ const LandingScreen = ({ navigation }) => { // Add navigation as a prop
         navigation.navigate('Empecemos'); // Now navigation is defined
     };
 
-    const nextSlide = () => {
-        if (currentSlide < slides.length - 1) {
-            setCurrentSlide(currentSlide + 1);
-        }
-    };
+    const goToSlide = (index) => {
+        stopAutoplay();
 
-    const prevSlide = () => {
-        if (currentSlide > 0) {
-            setCurrentSlide(currentSlide - 1);
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({
+                x: index * width,
+                animated: true
+            });
         }
+
+        animateSlideChange(index);
+
+        // Reiniciar autoplay después de 5 segundos de inactividad
+        setTimeout(startAutoplay, 5000);
     };
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1a8b82" />
-            {/* Rest of your component remains unchanged */}
+
             <View style={styles.header}>
-                <Animated.View
-                    style={[
-                        styles.headerContent,
-                        {
-                            opacity: fadeAnim,
-                            transform: [{
-                                translateY: slideAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [-50, 0]
-                                })
-                            }]
-                        }
-                    ]}
+                <ScrollView
+                    ref={scrollViewRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={handleScroll}
+                    onScrollBeginDrag={handleScrollBeginDrag}
+                    onScrollEndDrag={handleScrollEndDrag}
+                    scrollEventThrottle={16}
+                    style={styles.carousel}
+                    contentContainerStyle={styles.carouselContent}
                 >
-                    <Image
-                        source={slides[currentSlide].image}
-                        style={styles.headerImage}
-                        resizeMode="cover"
-                    />
-                    <View style={styles.overlay}>
-                        <Text style={styles.headerTitle}>
-                            {slides[currentSlide].title}
-                        </Text>
-                        <Text style={styles.headerSubtitle}>
-                            {slides[currentSlide].subtitle}
-                        </Text>
-                    </View>
-                </Animated.View>
-
-                <View style={styles.navigationControls}>
-                    <TouchableOpacity
-                        style={[styles.navButton, currentSlide === 0 && styles.navButtonDisabled]}
-                        onPress={prevSlide}
-                        disabled={currentSlide === 0}
-                    >
-                        <Text style={styles.navButtonText}>‹</Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.dotsContainer}>
-                        {slides.map((_, index) => (
-                            <TouchableOpacity
-                                key={index}
+                    {slides.map((slide, index) => (
+                        <Animated.View
+                            key={index}
+                            style={[
+                                styles.slide,
+                                {
+                                    opacity: fadeAnim,
+                                    transform: [{
+                                        translateY: slideAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [-50, 0]
+                                        })
+                                    }]
+                                }
+                            ]}
+                        >
+                            <Animated.Image
+                                source={slide.image}
                                 style={[
-                                    styles.dot,
-                                    index === currentSlide ? styles.activeDot : styles.inactiveDot
+                                    styles.headerImage,
+                                    {
+                                        opacity: slideOpacity
+                                    }
                                 ]}
-                                onPress={() => setCurrentSlide(index)}
+                                resizeMode="cover"
                             />
-                        ))}
-                    </View>
+                            <Animated.View
+                                style={[
+                                    styles.overlay,
+                                    {
+                                        opacity: slideOpacity
+                                    }
+                                ]}
+                            >
+                                <Text style={styles.headerTitle}>
+                                    {slide.title}
+                                </Text>
+                                <Text style={styles.headerSubtitle}>
+                                    {slide.subtitle}
+                                </Text>
+                            </Animated.View>
+                        </Animated.View>
+                    ))}
+                </ScrollView>
 
-                    <TouchableOpacity
-                        style={[styles.navButton, currentSlide === slides.length - 1 && styles.navButtonDisabled]}
-                        onPress={nextSlide}
-                        disabled={currentSlide === slides.length - 1}
-                    >
-                        <Text style={styles.navButtonText}>›</Text>
-                    </TouchableOpacity>
+                {/* Indicadores de página (dots) */}
+                <View style={styles.dotsContainer}>
+                    {slides.map((_, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={[
+                                styles.dot,
+                                index === currentSlide ? styles.activeDot : styles.inactiveDot
+                            ]}
+                            onPress={() => goToSlide(index)}
+                        />
+                    ))}
+                </View>
+
+                {/* Indicador de autoplay */}
+                <View style={styles.autoplayIndicator}>
+                    <View style={styles.progressBar}>
+                        <Animated.View
+                            style={[
+                                styles.progressFill,
+                                {
+                                    width: `${((currentSlide + 1) / slides.length) * 100}%`
+                                }
+                            ]}
+                        />
+                    </View>
+                    <Text style={styles.autoplayText}>Auto {currentSlide + 1}/{slides.length}</Text>
                 </View>
             </View>
 
@@ -278,14 +392,23 @@ const styles = StyleSheet.create({
         position: 'relative',
         backgroundColor: '#2aa198',
     },
-    headerContent: {
+    carousel: {
         flex: 1,
+    },
+    carouselContent: {
+        flexDirection: 'row',
+    },
+    slide: {
+        width: width,
+        height: height * 0.45,
         position: 'relative',
     },
     headerImage: {
-        width: '100%',
-        height: '100%',
+        width: width,
+        height: height * 0.45,
         position: 'absolute',
+        top: 0,
+        left: 0,
     },
     overlay: {
         position: 'absolute',
@@ -315,33 +438,11 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },
-    navigationControls: {
+    dotsContainer: {
         position: 'absolute',
         bottom: 20,
         left: 0,
         right: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-    },
-    navButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    navButtonDisabled: {
-        opacity: 0.3,
-    },
-    navButtonText: {
-        fontSize: 24,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    dotsContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -358,6 +459,30 @@ const styles = StyleSheet.create({
     },
     inactiveDot: {
         backgroundColor: 'rgba(255,255,255,0.5)',
+    },
+    autoplayIndicator: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        alignItems: 'flex-end',
+    },
+    progressBar: {
+        width: 60,
+        height: 3,
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        borderRadius: 2,
+        marginBottom: 4,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#fff',
+        borderRadius: 2,
+    },
+    autoplayText: {
+        fontSize: 10,
+        color: '#fff',
+        opacity: 0.8,
     },
     content: {
         flex: 1,
@@ -450,6 +575,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 8,
     },
+    checkIcon: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#2aa198',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
     featureText: {
         fontSize: 14,
         color: '#555',
@@ -477,9 +615,10 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: 30,
         borderRadius: 25,
+        backgroundColor: '#2aa198',
     },
     buttonText: {
-        color: '#3AAFA9',
+        color: '#fff',
         fontWeight: '700',
         fontSize: 16,
         marginRight: 8,

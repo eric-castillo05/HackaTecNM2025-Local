@@ -1,11 +1,20 @@
 package com.example.backHackLocal.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Table(name = "encuesta_seguimiento")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class EncuestaSeguimiento {
 
     public enum TipoEncuesta {
@@ -13,11 +22,11 @@ public class EncuestaSeguimiento {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idEncuesta;
 
     @ManyToOne
-    @JoinColumn(name = "nino_id")
+    @JoinColumn(name = "nino_id", nullable = false)
     private NinoAdoptado nino;
 
     @Enumerated(EnumType.STRING)

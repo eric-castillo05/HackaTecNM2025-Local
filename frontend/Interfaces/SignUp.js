@@ -11,8 +11,8 @@ const SignUp = ({ navigation }) => {
     const [showSexoModal, setShowSexoModal] = useState(false);
 
     const sexoOptions = [
-        { label: 'Masculino', value: 'masculino' },
-        { label: 'Femenino', value: 'femenino' },
+        { label: 'Masculino', value: 'Masculino' },
+        { label: 'Femenino', value: 'Femenino' },
     ];
 
     const handleSexoSelect = (value) => {
@@ -31,27 +31,32 @@ const SignUp = ({ navigation }) => {
         } else if (password.length < 6) {
             Alert.alert('', 'La contraseña debe tener al menos 6 caracteres');
         } else {
-            const registrationData = new FormData();
-            registrationData.append('correo', correo);
-            registrationData.append('nombre', nombre);
-            registrationData.append('sexo', sexo);
-            registrationData.append('password', password);
+            const registrationData = {
+                correo: correo.trim(),
+                nombre: nombre.trim(),
+                sexo: sexo,
+                password: password,
+            };
+
+            console.log('Datos enviados:', registrationData); // Depuración
 
             try {
-                const response = await fetch('http://192.168.0.106:5000/users/register', {
+                const response = await fetch('http://192.168.0.102:8080/api/padres', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'multipart/form-data'
+                        'Content-Type': 'application/json',
                     },
-                    body: registrationData,
+                    body: JSON.stringify(registrationData),
                 });
 
-                if (response.status === 201) {
+                const responseData = await response.json(); // Parsear la respuesta
+
+                if (response.ok) {
                     Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada correctamente');
                     navigation.navigate('SignIn');
                 } else {
-                    const errorData = await response.json();
-                    Alert.alert('Error en el registro', errorData.message || 'Hubo un problema con tu registro');
+                    console.error('Error en el servidor:', responseData);
+                    Alert.alert('Error en el registro', responseData.message || 'Hubo un problema con tu registro');
                 }
             } catch (error) {
                 console.error('Error en la conexión al servidor:', error);
