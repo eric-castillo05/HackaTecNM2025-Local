@@ -30,7 +30,6 @@ public class EncuestaSeguimiento {
     private NinoAdoptado nino;
 
     @Enumerated(EnumType.STRING)
-    @Column(unique = true)
     private TipoEncuesta tipo;
 
     @Column
