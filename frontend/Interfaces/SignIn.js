@@ -174,7 +174,7 @@ const SignIn = ({ navigation }) => {
                         {/* Sign Up Link */}
                         <View style={styles.signUpContainer}>
                             <Text style={styles.signUpText}>¿No tienes una cuenta? </Text>
-                            <TouchableOpacity onPress={() => navigation.navigate('Postulante')}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Captura')}>
                                 <Text style={styles.signUpLink}>Crear Cuenta</Text>
                             </TouchableOpacity>
                         </View>
