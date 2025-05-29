@@ -1,0 +1,114 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const EmpecemosScreen = ({ navigation }) => {
+    return (
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.circleTop}></View>
+                <View style={styles.circleBottom}></View>
+
+                {/*<Ionicons
+                name="arrow-back"
+                size={30}
+                color="black"
+                style={styles.backIcon}
+                onPress={() => navigation.goBack()}
+            />
+            */}
+
+                <Text style={styles.title}>Empecemos</Text>
+                <Text style={styles.subtitle}>Empieza por hacer Sign-In o Sign-Up</Text>
+
+
+                <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SignUp')}>
+                    <Text style={styles.buttonText}>SIGN-UP</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.button, styles.signInButton]} onPress={() => navigation.navigate('SignIn')}>
+                    <Text style={styles.buttonText}>SIGN-IN</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+    },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        paddingHorizontal: 0,
+    },
+    backIcon: {
+        position: 'absolute',
+        top: 90,
+        left: 20,
+    },
+    title: {
+        fontSize: 52,
+        fontWeight: 'bold',
+        color: '#000',
+        marginTop: 50,
+        paddingHorizontal: 20,
+        textAlign: "left",
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#808080',
+        marginTop: 20,
+        textAlign: 'left',
+        paddingHorizontal: 20,
+    },
+    robotImage: {
+        width: 400,
+        height: 300,
+        resizeMode: 'contain',
+        marginTop: 60,
+        alignSelf: 'center',
+    },
+    button: {
+        backgroundColor: '#F4F4F4',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 30,
+        alignItems: 'center',
+        marginTop: 55,
+        width: '80%',
+        alignSelf: 'center',
+    },
+    signInButton: {
+        backgroundColor: '#F4F4F4',
+    },
+    buttonText: {
+        color: '#000',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    circleTop: {
+        position: 'absolute',
+        width: 400,
+        height: 400,
+        borderRadius: 300,
+        backgroundColor: '#3AAFA9',
+        bottom: -100,
+        left: -100,
+        zIndex: -1,
+    },
+    circleBottom: {
+        position: 'absolute',
+        width: 400,
+        height: 400,
+        borderRadius: 200,
+        backgroundColor: '#FAF6EF',
+        bottom: -150,
+        right: -100,
+        zIndex: -1, // Asegura que el círculo esté detrás
+    },
+});
+
+export default EmpecemosScreen;
