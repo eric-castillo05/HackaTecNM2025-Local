@@ -142,21 +142,39 @@ const FormularioAdopScreen = ({ navigation }) => {
         }));
     };
 
-    // Función para formatear fecha
+    // Función para formatear fecha - CORREGIDA
     const formatearFecha = (fecha) => {
-        const date = new Date(fecha);
+        let fechaObj;
+
+        if (fecha.includes('/')) {
+            // Convertir DD/MM/YYYY a objeto Date
+            const [dia, mes, anio] = fecha.split('/');
+            fechaObj = new Date(anio, mes - 1, dia); // mes - 1 porque los meses van de 0-11
+        } else {
+            fechaObj = new Date(fecha);
+        }
+
         const opciones = {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         };
-        return date.toLocaleDateString('es-ES', opciones);
+        return fechaObj.toLocaleDateString('es-ES', opciones);
     };
 
-    // Función para calcular edad
+    // Función para calcular edad - CORREGIDA
     const calcularEdad = (fechaNacimiento) => {
         const hoy = new Date();
-        const nacimiento = new Date(fechaNacimiento);
+        let nacimiento;
+
+        if (fechaNacimiento.includes('/')) {
+            // Convertir DD/MM/YYYY a objeto Date
+            const [dia, mes, anio] = fechaNacimiento.split('/');
+            nacimiento = new Date(anio, mes - 1, dia);
+        } else {
+            nacimiento = new Date(fechaNacimiento);
+        }
+
         let edad = hoy.getFullYear() - nacimiento.getFullYear();
         const mes = hoy.getMonth() - nacimiento.getMonth();
 
