@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import StartScreen from "./Interfaces/LandingScreen";
 import EmpecemosScreen from "./Interfaces/EmpecemosScreen";
 import LandingScreen from "./Interfaces/LandingScreen";
+import FormularioAdopScreen from "./Interfaces/FormularioAdopScreen";
 
 const Stack = createStackNavigator();
 
@@ -17,6 +18,7 @@ export default function App() {
         >
           <Stack.Screen name="Landing" component={LandingScreen} />
           <Stack.Screen name="Empecemos" component={EmpecemosScreen} />
+            <Stack.Screen name="Formulario" component={FormularioAdopScreen} />
         </Stack.Navigator>
       </NavigationContainer>
   );
