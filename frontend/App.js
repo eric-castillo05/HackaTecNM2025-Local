@@ -10,6 +10,7 @@ import SignIn from "./Interfaces/SignIn";
 import PostulanteScreen from "./Interfaces/PostulanteScreen";
 import CitasEntrevistasScreen from "./Interfaces/CitasEntrevistasScreen";
 import SeguimientoScreen from "./Interfaces/SeguimientoScreen";
+import RecursosScreen from "./Interfaces/RecursosScreen";
 
 const Stack = createStackNavigator();
 
@@ -29,6 +30,7 @@ export default function App() {
             <Stack.Screen name="Postulante" component={PostulanteScreen} />
             <Stack.Screen name="Citas" component={CitasEntrevistasScreen} />
             <Stack.Screen name="Seguimiento" component={SeguimientoScreen} />
+            <Stack.Screen name="Recursos" component={RecursosScreen} />
 
         </Stack.Navigator>
       </NavigationContainer>
