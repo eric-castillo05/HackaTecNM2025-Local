@@ -10,7 +10,8 @@ import {
     Alert,
     SafeAreaView,
     Modal,
-    ActivityIndicator
+    ActivityIndicator,
+    TextInput
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -36,9 +37,56 @@ const TrabajadorSocialScreen = ({ navigation, route }) => {
     const [parentData, setParentData] = useState(null);
     const [showParentInfo, setShowParentInfo] = useState(false);
 
+    // Estados para encuesta de satisfacción
+    const [showSurvey, setShowSurvey] = useState(false);
+    const [selectedChild, setSelectedChild] = useState(null);
+    const [surveyResponses, setSurveyResponses] = useState({});
+    const [surveyComments, setSurveyComments] = useState('');
+    const [isSavingSurvey, setIsSavingSurvey] = useState(false);
+
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+    // Preguntas de la encuesta
+    const surveyQuestions = [
+        {
+            id: 1,
+            question: "¿Cómo se siente el niño/a en su nuevo hogar?",
+            type: "scale",
+            scale: ["Muy mal", "Mal", "Regular", "Bien", "Muy bien"]
+        },
+        {
+            id: 2,
+            question: "¿El niño/a se adapta bien a la rutina familiar?",
+            type: "scale",
+            scale: ["Nada", "Poco", "Regular", "Bien", "Muy bien"]
+        },
+        {
+            id: 3,
+            question: "¿Cómo es la relación con los padres adoptivos?",
+            type: "scale",
+            scale: ["Muy mala", "Mala", "Regular", "Buena", "Muy buena"]
+        },
+        {
+            id: 4,
+            question: "¿El niño/a expresa sus emociones libremente?",
+            type: "scale",
+            scale: ["Nunca", "Raramente", "A veces", "Frecuentemente", "Siempre"]
+        },
+        {
+            id: 5,
+            question: "¿Cómo califica el progreso académico/social?",
+            type: "scale",
+            scale: ["Muy malo", "Malo", "Regular", "Bueno", "Muy bueno"]
+        },
+        {
+            id: 6,
+            question: "¿El niño/a muestra signos de felicidad?",
+            type: "scale",
+            scale: ["Nunca", "Raramente", "A veces", "Frecuentemente", "Siempre"]
+        }
+    ];
 
     useEffect(() => {
         animateIn();
@@ -233,6 +281,185 @@ const TrabajadorSocialScreen = ({ navigation, route }) => {
         setShowScanner(true);
     };
 
+    // Función para abrir la encuesta de un niño específico
+    const openSurveyForChild = (child) => {
+        setSelectedChild(child);
+        setSurveyResponses({});
+        setSurveyComments('');
+        setShowSurvey(true);
+    };
+
+    // Función para manejar respuestas de la encuesta
+    const handleSurveyResponse = (questionId, responseIndex) => {
+        setSurveyResponses(prev => ({
+            ...prev,
+            [questionId]: responseIndex
+        }));
+    };
+
+    // Función para guardar la encuesta
+    const saveSurvey = async () => {
+        setIsSavingSurvey(true);
+
+        try {
+            // Verificar que todas las preguntas estén respondidas
+            const unansweredQuestions = surveyQuestions.filter(q =>
+                surveyResponses[q.id] === undefined
+            );
+
+            if (unansweredQuestions.length > 0) {
+                Alert.alert(
+                    "Encuesta incompleta",
+                    "Por favor responde todas las preguntas antes de guardar."
+                );
+                setIsSavingSurvey(false);
+                return;
+            }
+
+            // Simular guardado en API
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const surveyData = {
+                childId: selectedChild.id,
+                childName: selectedChild.name,
+                parentId: parentData.parentId,
+                workerId: workerEmail,
+                responses: surveyResponses,
+                comments: surveyComments,
+                date: new Date().toISOString(),
+                surveyQuestions: surveyQuestions
+            };
+
+            console.log('Encuesta guardada:', surveyData);
+
+            Alert.alert(
+                "Encuesta Guardada",
+                `La encuesta de satisfacción para ${selectedChild.name} ha sido guardada exitosamente.`,
+                [
+                    {
+                        text: "OK",
+                        onPress: () => {
+                            setShowSurvey(false);
+                            setSelectedChild(null);
+                        }
+                    }
+                ]
+            );
+
+        } catch (error) {
+            console.error('Error al guardar encuesta:', error);
+            Alert.alert(
+                "Error",
+                "Hubo un problema al guardar la encuesta. Inténtalo de nuevo."
+            );
+        } finally {
+            setIsSavingSurvey(false);
+        }
+    };
+
+    // Componente para renderizar la encuesta
+    const renderSurveyModal = () => {
+        if (!selectedChild) return null;
+
+        return (
+            <Modal
+                animationType="slide"
+                transparent={false}
+                visible={showSurvey}
+                onRequestClose={() => setShowSurvey(false)}
+            >
+                <SafeAreaView style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>
+                            Encuesta de Satisfacción - {selectedChild.name}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => setShowSurvey(false)}
+                            style={styles.closeButton}
+                        >
+                            <MaterialIcons name="close" size={24} color="#6b7280" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={styles.surveyContent}>
+                        <View style={styles.childInfoBanner}>
+                            <MaterialIcons name="child-care" size={24} color="#3AAFA9" />
+                            <View style={styles.childBannerText}>
+                                <Text style={styles.childBannerName}>{selectedChild.name}</Text>
+                                <Text style={styles.childBannerInfo}>
+                                    {selectedChild.age} años • {selectedChild.status}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {surveyQuestions.map((question, index) => (
+                            <View key={question.id} style={styles.questionCard}>
+                                <Text style={styles.questionNumber}>
+                                    Pregunta {index + 1} de {surveyQuestions.length}
+                                </Text>
+                                <Text style={styles.questionText}>{question.question}</Text>
+
+                                <View style={styles.scaleContainer}>
+                                    {question.scale.map((option, optionIndex) => (
+                                        <TouchableOpacity
+                                            key={optionIndex}
+                                            style={[
+                                                styles.scaleOption,
+                                                surveyResponses[question.id] === optionIndex && styles.scaleOptionSelected
+                                            ]}
+                                            onPress={() => handleSurveyResponse(question.id, optionIndex)}
+                                        >
+                                            <View style={[
+                                                styles.scaleCircle,
+                                                surveyResponses[question.id] === optionIndex && styles.scaleCircleSelected
+                                            ]}>
+                                                <Text style={styles.scaleNumber}>{optionIndex + 1}</Text>
+                                            </View>
+                                            <Text style={[
+                                                styles.scaleLabel,
+                                                surveyResponses[question.id] === optionIndex && styles.scaleLabelSelected
+                                            ]}>
+                                                {option}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+                        ))}
+
+                        <View style={styles.commentsSection}>
+                            <Text style={styles.commentsTitle}>Comentarios adicionales</Text>
+                            <TextInput
+                                style={styles.commentsInput}
+                                placeholder="Escribe aquí cualquier observación adicional sobre el bienestar del niño/a..."
+                                multiline
+                                numberOfLines={4}
+                                value={surveyComments}
+                                onChangeText={setSurveyComments}
+                                textAlignVertical="top"
+                            />
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.saveSurveyButton, isSavingSurvey && styles.saveSurveyButtonDisabled]}
+                            onPress={saveSurvey}
+                            disabled={isSavingSurvey}
+                        >
+                            {isSavingSurvey ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <MaterialIcons name="save" size={24} color="#fff" />
+                            )}
+                            <Text style={styles.saveSurveyButtonText}>
+                                {isSavingSurvey ? 'Guardando...' : 'Guardar Encuesta'}
+                            </Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                </SafeAreaView>
+            </Modal>
+        );
+    };
+
     const renderParentInfoModal = () => {
         if (!parentData) return null;
 
@@ -288,19 +515,34 @@ const TrabajadorSocialScreen = ({ navigation, route }) => {
                         {/* Hijos adoptados */}
                         <View style={styles.childrenSection}>
                             <Text style={styles.sectionTitle}>Hijos Adoptados</Text>
+                            <Text style={styles.sectionSubtitle}>
+                                Toca sobre un niño para abrir su encuesta de satisfacción
+                            </Text>
                             {parentData.adoptedChildren.map((child) => (
-                                <View key={child.id} style={styles.childCard}>
+                                <TouchableOpacity
+                                    key={child.id}
+                                    style={styles.childCard}
+                                    onPress={() => openSurveyForChild(child)}
+                                    activeOpacity={0.7}
+                                >
                                     <View style={styles.childHeader}>
                                         <MaterialIcons name="child-care" size={20} color="#3AAFA9" />
                                         <Text style={styles.childName}>{child.name}</Text>
                                         <Text style={styles.childAge}>{child.age} años</Text>
+                                        <MaterialIcons name="arrow-forward-ios" size={16} color="#9ca3af" />
                                     </View>
                                     <Text style={styles.childStatus}>Estado: {child.status}</Text>
                                     <Text style={styles.childProgress}>Progreso: {child.progress}</Text>
                                     <Text style={styles.childDate}>
                                         Adoptado: {new Date(child.adoptionDate).toLocaleDateString()}
                                     </Text>
-                                </View>
+                                    <View style={styles.surveyIndicator}>
+                                        <MaterialIcons name="assignment" size={16} color="#3AAFA9" />
+                                        <Text style={styles.surveyIndicatorText}>
+                                            Toca para evaluar bienestar
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
                             ))}
                         </View>
                     </ScrollView>
@@ -443,7 +685,7 @@ const TrabajadorSocialScreen = ({ navigation, route }) => {
                     <MaterialIcons name="qr-code-scanner" size={48} color="#3AAFA9" />
                     <Text style={styles.qrTitle}>Escanear Código QR</Text>
                     <Text style={styles.qrSubtitle}>
-                        Escanea el código QR del padre adoptivo para ver la información de sus hijos y estadísticas
+                        Escanea el código QR del padre adoptivo para ver la información de sus hijos y realizar encuestas de satisfacción
                     </Text>
 
                     <TouchableOpacity
@@ -473,7 +715,7 @@ const TrabajadorSocialScreen = ({ navigation, route }) => {
                 >
                     <MaterialIcons name="info" size={20} color="#6b7280" />
                     <Text style={styles.infoText}>
-                        El código QR te permitirá acceder a toda la información relevante sobre el progreso de las adopciones.
+                        Después de escanear el QR, podrás hacer clic en cada niño para evaluar su bienestar y satisfacción en el hogar adoptivo.
                     </Text>
                 </Animated.View>
             </ScrollView>
@@ -481,6 +723,7 @@ const TrabajadorSocialScreen = ({ navigation, route }) => {
             {/* Modales */}
             {renderQRScanner()}
             {renderParentInfoModal()}
+            {renderSurveyModal()}
         </SafeAreaView>
     );
 };
@@ -711,6 +954,8 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         color: '#1e293b',
+        flex: 1,
+        marginRight: 10,
     },
     modalContent: {
         flex: 1,
@@ -768,7 +1013,13 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         color: '#1e293b',
+        marginBottom: 5,
+    },
+    sectionSubtitle: {
+        fontSize: 14,
+        color: '#64748b',
         marginBottom: 15,
+        fontStyle: 'italic',
     },
     childCard: {
         backgroundColor: '#fff',
@@ -780,6 +1031,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
     },
     childHeader: {
         flexDirection: 'row',
@@ -800,6 +1053,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 6,
+        marginRight: 8,
     },
     childStatus: {
         fontSize: 14,
@@ -814,6 +1068,168 @@ const styles = StyleSheet.create({
     childDate: {
         fontSize: 12,
         color: '#64748b',
+        marginBottom: 8,
+    },
+    surveyIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f0fdfa',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        alignSelf: 'flex-start',
+    },
+    surveyIndicatorText: {
+        fontSize: 12,
+        color: '#3AAFA9',
+        fontWeight: '500',
+        marginLeft: 4,
+    },
+    // Estilos de la encuesta
+    surveyContent: {
+        flex: 1,
+        padding: 20,
+    },
+    childInfoBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    childBannerText: {
+        marginLeft: 12,
+    },
+    childBannerName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#1e293b',
+    },
+    childBannerInfo: {
+        fontSize: 14,
+        color: '#64748b',
+        marginTop: 2,
+    },
+    questionCard: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    questionNumber: {
+        fontSize: 12,
+        color: '#64748b',
+        fontWeight: '500',
+        marginBottom: 8,
+    },
+    questionText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1e293b',
+        marginBottom: 16,
+        lineHeight: 22,
+    },
+    scaleContainer: {
+        gap: 8,
+    },
+    scaleOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    scaleOptionSelected: {
+        backgroundColor: '#f0fdfa',
+        borderColor: '#3AAFA9',
+    },
+    scaleCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#f1f5f9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    scaleCircleSelected: {
+        backgroundColor: '#3AAFA9',
+    },
+    scaleNumber: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#64748b',
+    },
+    scaleLabel: {
+        fontSize: 14,
+        color: '#374151',
+        flex: 1,
+    },
+    scaleLabelSelected: {
+        color: '#1e293b',
+        fontWeight: '500',
+    },
+    commentsSection: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    commentsTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1e293b',
+        marginBottom: 12,
+    },
+    commentsInput: {
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 14,
+        color: '#374151',
+        minHeight: 100,
+    },
+    saveSurveyButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#3AAFA9',
+        paddingVertical: 16,
+        borderRadius: 12,
+        shadowColor: '#3AAFA9',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+        marginBottom: 20,
+    },
+    saveSurveyButtonDisabled: {
+        backgroundColor: '#9ca3af',
+    },
+    saveSurveyButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 8,
     },
 });
 
