@@ -24,8 +24,10 @@ const FormularioAdopScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
-        // Paso 1: Información Personal
+        // Paso 0: Verificación de Credencial
         codigo_credencial: '',
+
+        // Paso 1: Información Personal
         anios_trabajo_actual: '',
         edad: '',
         genero: '',
@@ -52,11 +54,18 @@ const FormularioAdopScreen = ({ navigation }) => {
 
     const steps = [
         {
+            title: "Verificación de CURP",
+            subtitle: "Ingresa tu CURP",
+            icon: "verified-user",
+            iconLibrary: "MaterialIcons",
+            fields: ['codigo_credencial']
+        },
+        {
             title: "Información Personal",
             subtitle: "Cuéntanos sobre ti",
             icon: "person",
             iconLibrary: "MaterialIcons",
-            fields: ['codigo_credencial', 'anios_trabajo_actual', 'edad', 'genero', 'estado_civil']
+            fields: ['anios_trabajo_actual', 'edad', 'genero', 'estado_civil']
         },
         {
             title: "Información Familiar",
@@ -149,7 +158,12 @@ const FormularioAdopScreen = ({ navigation }) => {
 
     const nextStep = () => {
         if (validateCurrentStep()) {
-            if (currentStep < steps.length - 1) {
+            // Si estamos en el paso 0 (verificación de credencial)
+            if (currentStep === 0) {
+                // Aquí se hará la verificación del código en el futuro
+                // Por ahora simplemente continuamos al siguiente paso
+                setCurrentStep(currentStep + 1);
+            } else if (currentStep < steps.length - 1) {
                 setCurrentStep(currentStep + 1);
             } else {
                 handleSubmit();
@@ -264,10 +278,10 @@ const FormularioAdopScreen = ({ navigation }) => {
     const getFieldConfig = (fieldName) => {
         const configs = {
             codigo_credencial: {
-                label: "Código de identificación de credencial",
-                placeholder: "Ej: ABC123456789",
+                label: "CURP",
+                placeholder: "Ej: XEXX010101HNEXXXA4",
                 keyboardType: 'default',
-                icon: "badge",
+                icon: "verified-user",
                 iconLibrary: "MaterialIcons"
             },
             anios_trabajo_actual: {
@@ -513,9 +527,11 @@ const FormularioAdopScreen = ({ navigation }) => {
                 >
                     <View style={styles.buttonContent}>
                         <Text style={styles.nextButtonText}>
-                            {currentStep === steps.length - 1 ? 'Enviar' : 'Siguiente'}
+                            {currentStep === 0 ? 'Verificar' : currentStep === steps.length - 1 ? 'Enviar' : 'Siguiente'}
                         </Text>
-                        {currentStep === steps.length - 1 ? (
+                        {currentStep === 0 ? (
+                            <MaterialIcons name="verified-user" size={20} color="#fff" />
+                        ) : currentStep === steps.length - 1 ? (
                             <MaterialIcons name="check" size={20} color="#fff" />
                         ) : (
                             <MaterialIcons name="arrow-forward" size={20} color="#fff" />
